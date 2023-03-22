@@ -1,35 +1,25 @@
 const express = require("express");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const userRoutes = require("./routes/userRoute");
 
-const color = require("colors");
+const app = express();
 
-const morgan = require("morgan");
-var bodyParser = require("body-parser");
+// Connect to MongoDB
+mongoose
+  .connect("mongodb://127.0.0.1/DoctorAppointment", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Could not connect to MongoDB"));
 
-const { PORT } = require("./config/serverConfig");
-const Connect = require("./config/database");
-const userRoute = require("./routes/userRoute");
+// Set up the middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-const setupAndStartServer = () => {
-  // rest Object
+// Set up the routes
+app.use("/api/user", userRoutes);
 
-  const app = express();
-
-  //middlewares
-  app.use(bodyParser.urlencoded({ extended: false }));
-
-  // parse application/json
-  app.use(bodyParser.json());
-  app.use(express.json());
-  app.use(morgan("dev"));
-
-  //   routes
-  app.use("/api/v1/user", userRoute);
-
-  app.listen(PORT, async () => {
-    console.log(`Server Running on :${PORT}`.bgBlue.white);
-    await Connect();
-    console.log("database Connected".bgGreen.white);
-  });
-};
-
-setupAndStartServer();
+// Start the server
+app.listen(4000, () => console.log("Server started on port 3000"));
