@@ -1,5 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/serverConfig");
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -34,29 +36,66 @@ const register = async (req, res) => {
 };
 
 // Login
+// login callback
 const login = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-
     if (!user) {
-      return res.status(200).json({
-        success: false,
-        message: "user not Found",
-      });
+      return res
+        .status(200)
+        .send({ message: "user not found", success: false });
     }
     const isMatch = await bcrypt.compare(req.body.password, user.password);
-
     if (!isMatch) {
-      return res.status(200).json({
+      return res
+        .status(200)
+        .send({ message: "Invlid EMail or Password", success: false });
+    }
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    res.status(200).send({ message: "Login Success", success: true, token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: `Error in Login`,
+      err: error,
+      data: {},
+    });
+  }
+};
+
+const authController = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.body.userId });
+
+    if (!user) {
+      return res.status(200).send({
+        message: "user not found",
         success: false,
-        message: "invalid email Id and password",
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        data: {
+          name: user.name,
+          email: user.email,
+        },
       });
     }
   } catch (error) {
-    console.log("Something went wrong in controller layer");
-    throw { error };
+    console.log(error);
+    res.status(500).send({
+      message: "auth error",
+      success: false,
+      error,
+    });
   }
 };
+
 module.exports = {
   register,
+  login,
+  authController,
 };
