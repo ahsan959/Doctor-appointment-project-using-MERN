@@ -151,7 +151,49 @@ const getAllNotification = async (req, res) => {
     });
   }
 };
+const getAllUsers = async (req, res) => {
+  try {
+    const allUsers = await User.find({});
+    res.status(200).json({
+      success: true,
+      message: "Successfull get all the Users",
+      data: allUsers,
+      err: {},
+    });
+  } catch (error) {
+    console.log("something went wrong ");
+    throw { error };
 
+    res.status(500).json({
+      success: false,
+      message: "we are not able to get all the Users",
+      data: {},
+      err: error,
+    });
+  }
+};
+
+const getAllDoctor = async (req, res) => {
+  try {
+    const allDoctor = await DoctorModel.find({});
+    res.status(200).json({
+      success: true,
+      message: "Successfull get all the Users",
+      data: allDoctor,
+      err: {},
+    });
+  } catch (error) {
+    console.log("something went wrong ");
+    throw { error };
+
+    res.status(500).json({
+      success: false,
+      message: "we are not able to get all the Users",
+      data: {},
+      err: error,
+    });
+  }
+};
 const deleteAllNotification = async (req, res) => {
   try {
     const response = await User.findOne({ _id: req.body.userId });
@@ -187,4 +229,6 @@ module.exports = {
   applyDoctor,
   getAllNotification,
   deleteAllNotification,
+  getAllUsers,
+  getAllDoctor,
 };
