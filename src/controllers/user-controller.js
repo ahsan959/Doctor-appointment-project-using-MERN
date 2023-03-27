@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/serverConfig");
+const DoctorModel = require("../models/doctor-models");
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -91,8 +92,99 @@ const authController = async (req, res) => {
   }
 };
 
+const applyDoctor = async (req, res) => {
+  try {
+    const newDoctor = await DoctorModel({ ...req.body, status: "pending" });
+    await newDoctor.save();
+    // then admin ko bata do new request i ha
+    const adminUser = await User.findOne({ isAdmin: true });
+    const notification = adminUser.notification;
+    notification.push({
+      type: "apply request as doctor",
+      message: `${newDoctor.firstName} ${newDoctor.lastName} has applied for a doctor account`,
+      data: {
+        doctorId: newDoctor._id,
+        name: newDoctor.firstName + " " + newDoctor.firstName,
+        onClickPath: "/admin/doctors",
+      },
+    });
+    await User.findByIdAndUpdate(adminUser._id, { notification });
+    res.status(200).json({
+      success: true,
+      message: "Doctor account Applied Succesfull",
+      data: newDoctor,
+      err: {},
+    });
+  } catch (error) {
+    console.log("something went wrong", error);
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: "Error occure while applying Doctor",
+      err: error,
+    });
+  }
+};
+
+const getAllNotification = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.body.userId });
+    const seenNotication = user.seenNotication;
+    const notification = user.notification;
+    seenNotication.push(...notification);
+    user.seenNotication = [];
+    user.seenNotication = notification;
+
+    const Updateduser = await user.save();
+    res.status(200).send({
+      success: true,
+      message: "all notification marked as read",
+      data: Updateduser,
+    });
+  } catch (error) {
+    console.log("Something went wrong ", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while fetching a notification",
+      err: error,
+      data: {},
+    });
+  }
+};
+
+const deleteAllNotification = async (req, res) => {
+  try {
+    const response = await User.findOne({ _id: req.body.userId });
+    response.notification = [];
+    response.seenNotication = [];
+
+    const UpdatedUser = response.save();
+
+    UpdatedUser.password = undefined;
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully fetch the data",
+      data: response,
+      err: {},
+    });
+  } catch (error) {
+    console.log("something went wrong");
+    throw { error };
+
+    res.status(500).json({
+      success: false,
+      message: "we are enable to delete a City ",
+      data: {},
+      err: error,
+    });
+  }
+};
 module.exports = {
   register,
   login,
   authController,
+  applyDoctor,
+  getAllNotification,
+  deleteAllNotification,
 };
