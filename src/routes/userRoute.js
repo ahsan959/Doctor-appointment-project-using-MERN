@@ -9,6 +9,7 @@ const {
   deleteAllNotification,
   getAllUsers,
   getAllDoctor,
+  changeAccountStatus,
 } = require("../controllers/user-controller");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -26,5 +27,8 @@ router.post("/getAllNotification", authMiddleware, getAllNotification);
 router.post("/deleteAllNotification", authMiddleware, deleteAllNotification);
 router.get("/getAllUser", getAllUsers);
 router.get("/getAllDoctor", getAllDoctor);
+
+// change account status
+router.post("/changeAccountStatus", changeAccountStatus);
 
 module.exports = router;

@@ -222,6 +222,14 @@ const deleteAllNotification = async (req, res) => {
     });
   }
 };
+
+const changeAccountStatus = async () => {
+  try {
+  } catch (error) {
+    console.log("something went wrong");
+    throw { error };
+  }
+};
 module.exports = {
   register,
   login,
@@ -231,4 +239,5 @@ module.exports = {
   deleteAllNotification,
   getAllUsers,
   getAllDoctor,
+  changeAccountStatus,
 };
