@@ -223,11 +223,35 @@ const deleteAllNotification = async (req, res) => {
   }
 };
 
-const changeAccountStatus = async () => {
+const changeAccountStatus = async (req, res) => {
   try {
+    const { doctorId, status } = req.body;
+    const doctor = await DoctorModel.findByIdAndUpdate(doctorId, { status });
+    const user = await User.findOne({ _id: doctor.userId });
+    const notification = user.notification;
+    notification.push({
+      type: `doctor-account-request-updated `,
+      message: `Your Doctor account Request has ${status}`,
+      onClickPath: "/notification",
+    });
+
+    // change status
+    user.isDoctor = status === "approved" ? true : false;
+    await user.save();
+    res.status(201).json({
+      success: true,
+      message: "Account status has Changed",
+      data: doctor,
+    });
   } catch (error) {
     console.log("something went wrong");
     throw { error };
+    res.status().json({
+      success: false,
+      message: "we are not able to change status",
+      err: error,
+      data: {},
+    });
   }
 };
 module.exports = {
